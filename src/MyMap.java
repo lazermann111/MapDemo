@@ -1,3 +1,7 @@
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -6,17 +10,13 @@ public class MyMap<K, V> implements Map<K, V> {
 
     private static final int DEFAULT_MAP_CAPACITY = 10;
 
-    private Node<K,V>[] table;
+    private Node<K, V>[] table;
     private int size;
-
-    class Node<K,V>{
-        K key;
-        V value;
-        Node<K,V> next;
-    }
+    private int currentCapacity;
 
     public MyMap(int capacity) {
         table = new Node[capacity];
+        currentCapacity = capacity;
         size = 0;
     }
 
@@ -26,20 +26,23 @@ public class MyMap<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
-        return 0;
+        return size;
     }
 
-    @Override
+
     public boolean isEmpty() {
-        return false;
+        if (size < 0) {
+            throw new IllegalStateException("Size cant be negative!");
+        }
+        return size == 0;
     }
 
-    @Override
+
     public boolean containsKey(Object o) {
         return false;
     }
 
-    @Override
+
     public boolean containsValue(Object o) {
         return false;
     }
@@ -49,9 +52,55 @@ public class MyMap<K, V> implements Map<K, V> {
         return null;
     }
 
-    @Override
-    public V put(K k, V v) {
+
+    /**
+     *
+     * @param key
+     * @param value
+     *
+     * @throws IllegalArgumentException if passed key is null.
+     * @return
+     */
+    public V put(@NotNull K key, @Nullable V value) {
+        if(key == null) {
+            throw new IllegalArgumentException("Key can't be null");
+        }
+        int keyHash = key.hashCode();
+        int bucketNum = keyHash % currentCapacity;
+        Node<K, V> firstBucketElement = table[bucketNum];
+        if(firstBucketElement == null){
+            table[bucketNum] = new Node<>(key, value, null);
+        }else {
+            //todo find 1st .next with null value
+            Node<K, V> currentElem = firstBucketElement;
+            if(currentElem.key.equals(key)){
+                V toReturn = currentElem.value;
+                currentElem.value = value;
+                return toReturn;
+            }
+            Node<K, V> nextElem = firstBucketElement.next;
+            while (nextElem != null){
+                if(currentElem.key.equals(key)){
+                    V toReturn = currentElem.value;
+                    currentElem.value = value;
+                    return toReturn;
+                }
+                currentElem = nextElem;
+                nextElem = currentElem.next;
+            }
+            currentElem.next = new Node<>(key, value, null);
+        }
+        size++;
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "MyMap{" +
+                "table=" + Arrays.toString(table) +
+                ", size=" + size +
+                ", currentCapacity=" + currentCapacity +
+                '}';
     }
 
     @Override
@@ -83,4 +132,44 @@ public class MyMap<K, V> implements Map<K, V> {
     public Set<Entry<K, V>> entrySet() {
         return null;
     }
+
+    static class Node<K, V> {
+        K key;
+        V value;
+        Node<K, V> next;
+
+        public Node(K key, V value, Node<K, V> next) {
+            this.key = key;
+            this.value = value;
+            this.next = next;
+        }
+
+        @Override
+        public String toString() {
+            return "Node{" +
+                    "key=" + key +
+                    ", value=" + value +
+                    ", next=" + next +
+                    '}';
+        }
+    }
+
+    static class MyMapEntry<K, V> implements Entry<K, V> {
+
+        @Override
+        public K getKey() {
+            return null;
+        }
+
+        @Override
+        public V getValue() {
+            return null;
+        }
+
+        @Override
+        public V setValue(V v) {
+            return null;
+        }
+    }
+
 }
