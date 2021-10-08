@@ -48,7 +48,27 @@ public class MyMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public V get(Object o) {
+    public V get(@NotNull Object key) {
+        int keyHash = key.hashCode();
+        int bucketNum = keyHash % currentCapacity;
+        Node<K, V> firstBucketElement = table[bucketNum];
+        if(firstBucketElement == null){
+            //no key was found in map
+            return null;
+        }else {
+            Node<K, V> currentElem = firstBucketElement;
+            if(currentElem.key.equals(key)){
+                return currentElem.value;
+            }
+            Node<K, V> nextElem = firstBucketElement.next;
+            while (nextElem != null){
+                if(currentElem.key.equals(key)){
+                    return currentElem.value;
+                }
+                currentElem = nextElem;
+                nextElem = currentElem.next;
+            }
+        }
         return null;
     }
 
@@ -62,16 +82,12 @@ public class MyMap<K, V> implements Map<K, V> {
      * @return
      */
     public V put(@NotNull K key, @Nullable V value) {
-        if(key == null) {
-            throw new IllegalArgumentException("Key can't be null");
-        }
         int keyHash = key.hashCode();
         int bucketNum = keyHash % currentCapacity;
         Node<K, V> firstBucketElement = table[bucketNum];
         if(firstBucketElement == null){
             table[bucketNum] = new Node<>(key, value, null);
         }else {
-            //todo find 1st .next with null value
             Node<K, V> currentElem = firstBucketElement;
             if(currentElem.key.equals(key)){
                 V toReturn = currentElem.value;
